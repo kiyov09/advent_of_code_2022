@@ -1,10 +1,12 @@
 use crate::utils::get_input_content;
 
+const INPUT_PATH: &str = "inputs/day_1.txt";
+
 pub fn day_one_task_one() {
     let mut most_calories = 0;
     let mut current_count = 0;
 
-    let file_contents = get_input_content("./day_one_task_one_input.txt");
+    let file_contents = get_input_content(INPUT_PATH);
 
     file_contents.lines().for_each(|line| {
         if line.is_empty() {
@@ -23,7 +25,7 @@ pub fn day_one_task_one() {
 
 pub fn day_one_task_two() {
     let mut calories: Vec<i32> = Vec::new();
-    let file_contents = get_input_content("./day_one_task_one_input.txt");
+    let file_contents = get_input_content(INPUT_PATH);
 
     file_contents.lines().fold(0, |acc, line| {
         if line.is_empty() {
