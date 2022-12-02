@@ -2,7 +2,7 @@ use crate::utils::get_input_content;
 
 const INPUT_PATH: &str = "inputs/day_1.txt";
 
-pub fn day_one_task_one() {
+pub fn task_1() {
     let mut most_calories = 0;
     let mut current_count = 0;
 
@@ -23,7 +23,7 @@ pub fn day_one_task_one() {
     println!("Most calories: {}", most_calories);
 }
 
-pub fn day_one_task_two() {
+pub fn task_2() {
     let mut calories: Vec<i32> = Vec::new();
     let file_contents = get_input_content(INPUT_PATH);
 
