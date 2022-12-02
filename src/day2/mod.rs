@@ -67,9 +67,9 @@ impl From<&str> for Play {
 }
 
 enum PointForResult {
-    LOSE,
-    DRAW,
-    WIN,
+    Lose,
+    Draw,
+    Win,
 }
 
 impl Add<u32> for PointForResult {
@@ -77,9 +77,9 @@ impl Add<u32> for PointForResult {
 
     fn add(self, rhs: u32) -> Self::Output {
         match self {
-            PointForResult::LOSE => rhs,
-            PointForResult::DRAW => 3 + rhs,
-            PointForResult::WIN => 6 + rhs,
+            PointForResult::Lose => rhs,
+            PointForResult::Draw => 3 + rhs,
+            PointForResult::Win => 6 + rhs,
         }
     }
 }
@@ -91,43 +91,43 @@ impl Play {
             Play {
                 their: OponentMoves::A,
                 mine: MyMoves::Z,
-            } => PointForResult::LOSE + self.mine.get_points(),
+            } => PointForResult::Lose + self.mine.get_points(),
             Play {
                 their: OponentMoves::B,
                 mine: MyMoves::X,
-            } => PointForResult::LOSE + self.mine.get_points(),
+            } => PointForResult::Lose + self.mine.get_points(),
             Play {
                 their: OponentMoves::C,
                 mine: MyMoves::Y,
-            } => PointForResult::LOSE + self.mine.get_points(),
+            } => PointForResult::Lose + self.mine.get_points(),
 
             // DRAW
             Play {
                 their: OponentMoves::A,
                 mine: MyMoves::X,
-            } => PointForResult::DRAW + self.mine.get_points(),
+            } => PointForResult::Draw + self.mine.get_points(),
             Play {
                 their: OponentMoves::B,
                 mine: MyMoves::Y,
-            } => PointForResult::DRAW + self.mine.get_points(),
+            } => PointForResult::Draw + self.mine.get_points(),
             Play {
                 their: OponentMoves::C,
                 mine: MyMoves::Z,
-            } => PointForResult::DRAW + self.mine.get_points(),
+            } => PointForResult::Draw + self.mine.get_points(),
 
             // WIN
             Play {
                 their: OponentMoves::A,
                 mine: MyMoves::Y,
-            } => PointForResult::WIN + self.mine.get_points(),
+            } => PointForResult::Win + self.mine.get_points(),
             Play {
                 their: OponentMoves::B,
                 mine: MyMoves::Z,
-            } => PointForResult::WIN + self.mine.get_points(),
+            } => PointForResult::Win + self.mine.get_points(),
             Play {
                 their: OponentMoves::C,
                 mine: MyMoves::X,
-            } => PointForResult::WIN + self.mine.get_points(),
+            } => PointForResult::Win + self.mine.get_points(),
         }
     }
 }
