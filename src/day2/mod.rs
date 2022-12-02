@@ -3,6 +3,7 @@ use std::ops::Add;
 
 const INPUT_PATH: &str = "inputs/day_2.txt";
 
+// OPONENT MOVES
 enum OponentMoves {
     A, // Rock
     B, // Paper
@@ -20,6 +21,7 @@ impl From<&str> for OponentMoves {
     }
 }
 
+// MY MOVES
 enum MyMoves {
     X, // Rock
     Y, // Paper
@@ -47,6 +49,7 @@ impl MyMoves {
     }
 }
 
+// PLAY
 struct Play {
     their: OponentMoves,
     mine: MyMoves,
@@ -62,24 +65,6 @@ impl From<&str> for Play {
         Play {
             their: OponentMoves::from(their),
             mine: MyMoves::from(mine),
-        }
-    }
-}
-
-enum PointForResult {
-    Lose,
-    Draw,
-    Win,
-}
-
-impl Add<u32> for PointForResult {
-    type Output = u32;
-
-    fn add(self, rhs: u32) -> Self::Output {
-        match self {
-            PointForResult::Lose => rhs,
-            PointForResult::Draw => 3 + rhs,
-            PointForResult::Win => 6 + rhs,
         }
     }
 }
@@ -130,6 +115,58 @@ impl Play {
             } => PointForResult::Win + self.mine.get_points(),
         }
     }
+
+    fn from_elf_strategy(play_line: &str) -> Self {
+        let mut split = play_line.split_whitespace();
+
+        let their = split.next().unwrap();
+        let their = OponentMoves::from(their);
+
+        let mine = split.next().unwrap();
+
+        let (their, mine) = match mine {
+            // I need to lose
+            "X" => match their {
+                OponentMoves::A => (their, MyMoves::Z),
+                OponentMoves::B => (their, MyMoves::X),
+                OponentMoves::C => (their, MyMoves::Y),
+            },
+            // I need to draw
+            "Y" => match their {
+                OponentMoves::A => (their, MyMoves::X),
+                OponentMoves::B => (their, MyMoves::Y),
+                OponentMoves::C => (their, MyMoves::Z),
+            },
+            // I need to win
+            "Z" => match their {
+                OponentMoves::A => (their, MyMoves::Y),
+                OponentMoves::B => (their, MyMoves::Z),
+                OponentMoves::C => (their, MyMoves::X),
+            },
+            _ => panic!("Wrong input data"),
+        };
+
+        Play { their, mine }
+    }
+}
+
+// POINTS BASED ON PLAY RESULT
+enum PointForResult {
+    Lose,
+    Draw,
+    Win,
+}
+
+impl Add<u32> for PointForResult {
+    type Output = u32;
+
+    fn add(self, rhs: u32) -> Self::Output {
+        match self {
+            PointForResult::Lose => rhs,
+            PointForResult::Draw => 3 + rhs,
+            PointForResult::Win => 6 + rhs,
+        }
+    }
 }
 
 pub fn task_1() {
@@ -143,4 +180,13 @@ pub fn task_1() {
     println!("Points: {}", points);
 }
 
-pub fn task_2() {}
+pub fn task_2() {
+    let input = get_input_content(INPUT_PATH);
+
+    let points = input.lines().fold(0, |acc, line| {
+        let play = Play::from_elf_strategy(line);
+        acc + play.get_points()
+    });
+
+    println!("Points using elf strategy: {}", points);
+}
