@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::utils::get_input_content;
 
 const INPUT_PATH: &str = "inputs/day_3.txt";
@@ -18,13 +20,41 @@ impl Rucksack {
     }
 
     fn item_in_both_halves(&self) -> char {
-        for item in self.first_half.chars() {
-            if self.second_half.contains(item) {
-                return item;
+        let first_set: HashSet<char> = self.first_half.chars().collect();
+        let second_set: HashSet<char> = self.second_half.chars().collect();
+
+        *first_set.intersection(&second_set).next().unwrap()
+    }
+}
+
+// Group of 3 elves
+struct Group {
+    a: Rucksack,
+    b: Rucksack,
+    c: Rucksack,
+}
+
+impl Group {
+    fn badge_item(&self) -> char {
+        let a_set: HashSet<char> = format!("{}{}", self.a.first_half, self.a.second_half)
+            .chars()
+            .collect();
+        let b_set: HashSet<char> = format!("{}{}", self.b.first_half, self.b.second_half)
+            .chars()
+            .collect();
+        let c_set: HashSet<char> = format!("{}{}", self.c.first_half, self.c.second_half)
+            .chars()
+            .collect();
+
+        let a_and_b: Vec<&char> = a_set.intersection(&b_set).collect();
+
+        for item in a_and_b {
+            if b_set.intersection(&c_set).any(|x| x == item) {
+                return *item;
             }
         }
 
-        panic!("Error in the input data")
+        panic!("Input error");
     }
 }
 
@@ -52,4 +82,22 @@ pub fn task_1() {
     println!("Sum of priorities: {}", sum);
 }
 
-pub fn task_2() {}
+pub fn task_2() {
+    let input = get_input_content(INPUT_PATH);
+
+    let sum = input
+        .lines()
+        .collect::<Vec<&str>>()
+        .chunks(3)
+        .map(|chunk| Group {
+            a: Rucksack::new(chunk[0]),
+            b: Rucksack::new(chunk[1]),
+            c: Rucksack::new(chunk[2]),
+        })
+        .fold(0, |acc, group| {
+            let badge = group.badge_item();
+            acc + item_priority(badge)
+        });
+
+    println!("Sum of badges priorities: {}", sum);
+}
