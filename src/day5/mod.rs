@@ -42,6 +42,24 @@ impl StacksManager {
         }
     }
 
+    fn process_with_createmover_9001(&mut self, command: &Command) {
+        let Command { count, from, to } = command;
+
+        let from = &mut self.stacks[((*from as u32) - 1) as usize];
+        let mut temp = vec![];
+
+        for _ in 0..*count {
+            if let Some(item_to_move) = from.pop_back() {
+                temp.push(item_to_move);
+            }
+        }
+
+        let to = &mut self.stacks[((*to as u32) - 1) as usize];
+        while let Some(item) = temp.pop() {
+            to.push_back(item);
+        }
+    }
+
     fn tops(&self) {
         let tops =
             self.stacks
@@ -135,9 +153,18 @@ impl Challenge {
         }
         self.manager.tops();
     }
+
+    fn task_2(&mut self) {
+        for command in &self.commands {
+            self.manager.process_with_createmover_9001(command);
+        }
+        self.manager.tops();
+    }
 }
 
 pub fn task_1() {
     Challenge::new().task_1();
 }
-pub fn task_2() {}
+pub fn task_2() {
+    Challenge::new().task_2();
+}
