@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{collections::VecDeque, str::FromStr};
 
 use crate::utils::get_input_content;
 
@@ -6,20 +6,20 @@ const INPUT_PATH: &str = "inputs/day_5.txt";
 
 #[derive(Debug)]
 struct StacksManager {
-    stacks: Vec<Vec<char>>,
+    stacks: Vec<VecDeque<char>>,
 }
 
 impl StacksManager {
     fn new(len: usize) -> Self {
         Self {
-            stacks: vec![vec![]; len],
+            stacks: vec![VecDeque::new(); len],
         }
     }
 
     fn insert_into_stacks(&mut self, v: &[char]) {
         v.iter().enumerate().for_each(|(index, item)| {
             if *item != ' ' {
-                self.stacks[index].insert(0, *item)
+                self.stacks[index].push_front(*item)
             }
         })
     }
@@ -27,17 +27,18 @@ impl StacksManager {
     fn process(&mut self, command: &Command) {
         let Command { count, from, to } = command;
 
-        let from: &mut Vec<char> = self.stacks[((*from as u32) - 1) as usize].as_mut();
+        let from = &mut self.stacks[((*from as u32) - 1) as usize];
         let mut temp = vec![];
+
         for _ in 0..*count {
-            if let Some(item_to_move) = from.pop() {
+            if let Some(item_to_move) = from.pop_back() {
                 temp.push(item_to_move);
             }
         }
 
-        let to: &mut Vec<char> = self.stacks[((*to as u32) - 1) as usize].as_mut();
+        let to = &mut self.stacks[((*to as u32) - 1) as usize];
         for item in temp {
-            to.push(item);
+            to.push_back(item);
         }
     }
 
@@ -46,13 +47,13 @@ impl StacksManager {
             self.stacks
                 .iter()
                 .fold(String::with_capacity(self.stacks.len()), |mut acc, item| {
-                    if let Some(c) = item.last() {
+                    if let Some(c) = item.back() {
                         acc.push(*c);
                     }
                     acc
                 });
 
-        println!("Tops of the stask: {}", tops);
+        println!("Tops of the stacks: {}", tops);
     }
 }
 
@@ -110,7 +111,6 @@ impl Challenge {
         input_lines.next();
 
         let mut commands: Vec<Command> = vec![];
-
         for line in input_lines {
             commands.push(line.parse::<Command>().unwrap());
         }
@@ -119,16 +119,14 @@ impl Challenge {
     }
 
     fn process_line(s: &str) -> Vec<char> {
-        let i = s
-            .replace('[', "")
+        s.replace('[', "")
             .replace(']', "")
             .replace("  ", " ")
             .chars()
             .collect::<Vec<char>>()
             .chunks(2)
             .map(|chunk| chunk[0])
-            .collect();
-        i
+            .collect()
     }
 
     fn task_1(&mut self) {
@@ -140,7 +138,6 @@ impl Challenge {
 }
 
 pub fn task_1() {
-    let mut challenge = Challenge::new();
-    challenge.task_1();
+    Challenge::new().task_1();
 }
 pub fn task_2() {}
