@@ -30,28 +30,20 @@ impl<'a> Challenge<'a> {
     }
 
     fn find_marker(&self, marker_size: usize) -> Marker {
-        let stream_len = self.stream.len();
-        let mut pointer = 0;
+        let position = self
+            .stream
+            .as_bytes()
+            .windows(marker_size)
+            .position(|set| {
+                let hs: HashSet<&u8> = HashSet::from_iter(set);
+                hs.len() == marker_size
+            })
+            .unwrap();
 
-        while pointer + marker_size < stream_len {
-            let sub = self.stream.get(pointer..pointer + marker_size).unwrap();
-
-            let hs: HashSet<char> = HashSet::from_iter(sub.chars());
-            if hs.len() == marker_size {
-                return Marker {
-                    value: sub,
-                    end_idx: pointer + marker_size,
-                };
-            }
-
-            pointer += 1;
-
-            if pointer + marker_size > stream_len {
-                break;
-            }
+        Marker {
+            value: self.stream.get(position..position + marker_size).unwrap(),
+            end_idx: position + marker_size,
         }
-
-        panic!("Something went wrong")
     }
 
     fn task_1(&self) {
