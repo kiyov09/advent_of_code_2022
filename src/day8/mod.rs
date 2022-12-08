@@ -160,26 +160,6 @@ impl Map {
                     self.layers[i][j].visible = any;
                 }
 
-                // if i == 1 && j == 2 {
-                //     println!(
-                //         "{} {} {} {}",
-                //         view_distance_top,
-                //         view_distance_left,
-                //         view_distance_right,
-                //         view_distance_bottom,
-                //     );
-                // }
-
-                // if i == 3 && j == 2 {
-                //     println!(
-                //         "{} {} {} {}",
-                //         view_distance_top,
-                //         view_distance_left,
-                //         view_distance_bottom,
-                //         view_distance_right,
-                //     );
-                // }
-
                 let view_distance = [
                     view_distance_top,
                     view_distance_left,
@@ -190,6 +170,7 @@ impl Map {
                 .map(|i| if *i == 0 { 1 } else { *i })
                 .product();
 
+                // Update view distance of the current tree
                 self.layers[i][j].view_distance = view_distance;
             }
         }
