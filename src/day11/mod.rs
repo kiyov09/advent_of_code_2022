@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, VecDeque},
-    str::FromStr,
-};
+use std::str::FromStr;
 
 use crate::utils::get_input_content;
 
@@ -9,9 +6,10 @@ const INPUT_PATH: &str = "inputs/day_11.txt";
 
 struct Monkey {
     no_items_inspected: u64,
-    items: VecDeque<u64>,
+    items: Vec<u64>,
     op: Box<dyn Fn(u64) -> u64>,
-    test: Box<dyn Fn(u64) -> (usize, u64)>,
+    test: Box<dyn Fn(u64) -> usize>,
+    test_no: u64,
 }
 
 impl FromStr for Monkey {
@@ -20,7 +18,7 @@ impl FromStr for Monkey {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut lines = s.lines();
 
-        let items: VecDeque<u64> = lines
+        let items: Vec<u64> = lines
             .next()
             .unwrap()
             .split(':')
@@ -92,9 +90,9 @@ impl FromStr for Monkey {
 
         let test = move |x: u64| {
             if x % no_to_test == 0 {
-                (monkey_when_true as usize, x / no_to_test)
+                monkey_when_true as usize
             } else {
-                (monkey_when_false as usize, x / no_to_test)
+                monkey_when_false as usize
             }
         };
 
@@ -105,17 +103,19 @@ impl FromStr for Monkey {
             items,
             op,
             test: Box::new(test),
+            test_no: no_to_test,
         })
     }
 }
 
 struct Challenge {
     monkeys: Vec<Monkey>,
+    worry: Box<dyn Fn(u64) -> u64>,
 }
 
 impl Challenge {
-    pub fn execute(&mut self) {
-        for _ in 0..20 {
+    pub fn execute(&mut self, rounds: u32) {
+        for _ in 0..rounds {
             for i in 0..self.monkeys.len() {
                 let mut map: Vec<Vec<u64>> = vec![vec![]; self.monkeys.len()];
 
@@ -124,14 +124,15 @@ impl Challenge {
 
                 monkey.items.iter().for_each(|item| {
                     let op_result = (monkey.op)(*item);
-                    let to_monkey = (monkey.test)(op_result / 3);
-                    map[to_monkey.0].push(op_result / 3)
+                    let op_result = (self.worry)(op_result);
+                    let to_monkey = (monkey.test)(op_result);
+                    map[to_monkey].push(op_result)
                 });
-                monkey.items = VecDeque::new();
+                monkey.items = Vec::new();
 
                 for (idx, v) in map.iter().enumerate() {
                     v.iter()
-                        .for_each(|item| self.monkeys[idx].items.push_back(*item))
+                        .for_each(|item| self.monkeys[idx].items.push(*item))
                 }
             }
         }
@@ -171,13 +172,31 @@ impl FromStr for Challenge {
             })
             .collect();
 
-        Ok(Self { monkeys })
+        Ok(Self {
+            monkeys,
+            worry: Box::new(|x| x),
+        })
     }
 }
 
 pub fn task_1() {
     let input = get_input_content(INPUT_PATH);
     let mut ch = input.parse::<Challenge>().unwrap();
-    ch.execute();
+    ch.worry = Box::new(|x| x / 3);
+    ch.execute(20);
 }
-pub fn task_2() {}
+pub fn task_2() {
+    let input = get_input_content(INPUT_PATH);
+    let mut ch = input.parse::<Challenge>().unwrap();
+
+    // Reference:
+    // https://www.youtube.com/watch?v=0RkTrYDyzmE&t=2659s
+    let magic_number = ch
+        .monkeys
+        .iter()
+        .fold(1, |acc, monkey| acc * monkey.test_no);
+
+    ch.worry = Box::new(move |x| x % magic_number);
+
+    ch.execute(10000);
+}
