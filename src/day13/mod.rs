@@ -161,4 +161,28 @@ pub fn task_1() {
 
     println!("Sum of idx: {}", result);
 }
-pub fn task_2() {}
+pub fn task_2() {
+    let c = Challenge::new();
+
+    let mut all_packets = c
+        .pairs
+        .iter()
+        .flat_map(|p| vec![&p.left.data, &p.right.data])
+        .collect::<Vec<&PacketItem>>();
+
+    let divider_1 = PacketItem::Multi(vec![PacketItem::Multi(vec![PacketItem::Single(2)])]);
+    let divider_2 = PacketItem::Multi(vec![PacketItem::Multi(vec![PacketItem::Single(6)])]);
+
+    all_packets.push(&divider_1);
+    all_packets.push(&divider_2);
+
+    all_packets.sort();
+
+    let divider_1_pos = all_packets.iter().position(|p| *p == &divider_1).unwrap();
+    let divider_2_pos = all_packets.iter().position(|p| *p == &divider_2).unwrap();
+
+    println!(
+        "Mul of dividers: {}",
+        (divider_1_pos + 1) * (divider_2_pos + 1)
+    )
+}
