@@ -5,7 +5,7 @@ use crate::utils::get_input_content;
 const INPUT_PATH: &str = "inputs/day_14.txt";
 
 #[derive(Debug, Hash, PartialEq, Eq, Copy, Clone)]
-struct Cell(u32, u32);
+struct Cell(i32, i32);
 
 impl Default for Cell {
     fn default() -> Self {
@@ -143,33 +143,14 @@ impl Cave {
     }
 
     fn new_cell_pos(&self, cell: &Cell) -> Option<Cell> {
-        let mut test_cell = *cell;
+        for dx in [0, -1, 1] {
+            let test_cell = Cell(cell.0 + dx, cell.1 + 1);
 
-        // Test down
-        test_cell.1 += 1;
-
-        if self.cells.get(&test_cell).is_none() {
-            // println!("Going down: {:?}", test_cell);
-            return Some(test_cell);
+            if self.cells.get(&test_cell).is_none() {
+                return Some(test_cell);
+            }
         }
 
-        // Test left
-        test_cell.0 -= 1;
-
-        if self.cells.get(&test_cell).is_none() {
-            // println!("Going left: {:?}", test_cell);
-            return Some(test_cell);
-        }
-
-        // Test right
-        test_cell.0 += 2;
-
-        if self.cells.get(&test_cell).is_none() {
-            // println!("Going right: {:?}", test_cell);
-            return Some(test_cell);
-        }
-
-        // println!("Staying: {:?}", cell);
         None
     }
 }
