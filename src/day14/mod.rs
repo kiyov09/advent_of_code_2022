@@ -30,6 +30,22 @@ struct Cave {
     cells: HashSet<Cell>,
 }
 
+impl Cave {
+    pub fn insert_rock_line(cells: &mut HashSet<Cell>, start: &Cell, end: &Cell) {
+        let dx = (end.0 - start.0).signum();
+        let dy = (end.1 - start.1).signum();
+
+        let mut new_cell = Cell(start.0 + dx, start.1 + dy);
+
+        while new_cell != *end {
+            cells.insert(new_cell);
+
+            new_cell.0 += dx;
+            new_cell.1 += dy;
+        }
+    }
+}
+
 impl FromStr for Cave {
     type Err = ();
 
@@ -41,37 +57,13 @@ impl FromStr for Cave {
                     line.split(" -> ").collect::<Vec<_>>().windows(2).fold(
                         HashSet::new(),
                         |mut acc, cells_pair| {
-                            let cell_a = cells_pair[0].parse::<Cell>().unwrap();
-                            let cell_b = cells_pair[1].parse::<Cell>().unwrap();
+                            let start = cells_pair[0].parse::<Cell>().unwrap();
+                            let end = cells_pair[1].parse::<Cell>().unwrap();
 
-                            if cell_a.0 == cell_b.0 {
-                                // MOVE in the Y
-                                if cell_a.1 < cell_b.1 {
-                                    for new_y in cell_a.1 + 1..cell_b.1 {
-                                        acc.insert(Cell(cell_a.0, new_y));
-                                    }
-                                } else {
-                                    for new_y in cell_b.1 + 1..cell_a.1 {
-                                        acc.insert(Cell(cell_a.0, new_y));
-                                    }
-                                }
-                            }
+                            Cave::insert_rock_line(&mut acc, &start, &end);
 
-                            if cell_a.1 == cell_b.1 {
-                                // MOVE in the X
-                                if cell_a.0 < cell_b.0 {
-                                    for new_x in cell_a.0 + 1..cell_b.0 {
-                                        acc.insert(Cell(new_x, cell_a.1));
-                                    }
-                                } else {
-                                    for new_x in cell_b.0 + 1..cell_a.0 {
-                                        acc.insert(Cell(new_x, cell_a.1));
-                                    }
-                                }
-                            }
-
-                            acc.insert(cell_a);
-                            acc.insert(cell_b);
+                            acc.insert(start);
+                            acc.insert(end);
 
                             acc
                         },
