@@ -89,26 +89,13 @@ impl Challenge {
     }
 
     pub fn get_no_beacons_positions_in_line(&self, line: usize) -> usize {
-        let ranges = self
-            .pairs
+        self.pairs
             .iter()
-            .map(|p| {
+            .flat_map(|p| {
                 p.0.line_coverage(p.0.manhattan_distance(p.1) as i32, line as i32)
             })
-            .collect::<Vec<_>>();
-
-        let min_start = ranges.iter().min_by_key(|r| r.start()).unwrap().start();
-        let max_end = ranges.iter().max_by_key(|r| r.end()).unwrap().end();
-
-        let mut count = 0;
-        for x in *min_start..=*max_end {
-            if ranges.iter().any(|r| r.contains(&x)) {
-                count += 1;
-                continue;
-            }
-        }
-
-        count
+            .collect::<HashSet<_>>()
+            .len()
     }
 
     pub fn beacons_in_line(&self, line: usize) -> usize {
