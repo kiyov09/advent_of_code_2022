@@ -88,26 +88,10 @@ impl Challenge {
         (sensor, beacon)
     }
 
-    pub fn can_reach_line(&self, line: usize, sensor: &Sensor) -> bool {
-        if line as i32 == sensor.1 {
-            return true;
-        }
-
-        let beacon = self.pairs.get(sensor).unwrap();
-        let distance = sensor.manhattan_distance(beacon) as i32;
-
-        match (sensor.1).cmp(&(line as i32)) {
-            std::cmp::Ordering::Less => (sensor.1 + distance) >= line as i32,
-            std::cmp::Ordering::Greater => (sensor.1 - distance) <= line as i32,
-            _ => false,
-        }
-    }
-
     pub fn get_no_beacons_positions_in_line(&self, line: usize) -> usize {
         let ranges = self
             .pairs
             .iter()
-            .filter(|p| self.can_reach_line(line, p.0))
             .map(|p| {
                 p.0.line_coverage(p.0.manhattan_distance(p.1) as i32, line as i32)
             })
