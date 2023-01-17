@@ -1,11 +1,11 @@
-use std::{collections::HashSet, num::ParseIntError, str::FromStr};
+use std::{num::ParseIntError, ops::Sub, str::FromStr};
 
 use crate::utils::get_input_content;
 
 const INPUT_PATH: &str = "inputs/day_18.txt";
 
-#[derive(Debug, PartialEq, Eq, Hash)]
-struct Cube(usize, usize, usize);
+#[derive(Debug, PartialEq, Eq)]
+struct Cube(i32, i32, i32);
 
 impl FromStr for Cube {
     type Err = ParseIntError;
@@ -17,6 +17,22 @@ impl FromStr for Cube {
             iter.next().unwrap().parse()?,
             iter.next().unwrap().parse()?,
         ))
+    }
+}
+
+impl Sub for Cube {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
+    }
+}
+
+impl<'a, 'b> Sub<&'b Cube> for &'a Cube {
+    type Output = Cube;
+
+    fn sub(self, rhs: &'b Cube) -> Cube {
+        Cube(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
     }
 }
 
@@ -33,40 +49,24 @@ impl Challenge {
     }
 
     pub fn get_surface(&self) -> usize {
-        let mut surface = self.cubes.len() * 6;
+        let mut surface = 0;
 
-        let mut done = HashSet::new();
+        let deltas = [
+            Cube(-1, 0, 0),
+            Cube(1, 0, 0),
+            // Same x, same z
+            Cube(0, -1, 0),
+            Cube(0, 1, 0),
+            // Same x, same y
+            Cube(0, 0, -1),
+            Cube(0, 0, 1),
+        ];
 
         for cube in self.cubes.iter() {
-            self.cubes.iter().for_each(|c| {
-                if done.contains(&(cube, c)) || done.contains(&(c, cube)) {
-                    return;
+            deltas.iter().for_each(|c| {
+                if !self.cubes.contains(&(cube - c)) {
+                    surface += 1;
                 }
-
-                let delta_x = cube.0.abs_diff(c.0);
-                let delta_y = cube.1.abs_diff(c.1);
-                let delta_z = cube.2.abs_diff(c.2);
-
-                match (delta_x == 1, delta_y == 1, delta_z == 1) {
-                    (true, false, false) => {
-                        if delta_y == 0 && delta_z == 0 {
-                            surface -= 2;
-                        }
-                    }
-                    (false, false, true) => {
-                        if delta_x == 0 && delta_y == 0 {
-                            surface -= 2;
-                        }
-                    }
-                    (false, true, false) => {
-                        if delta_x == 0 && delta_z == 0 {
-                            surface -= 2;
-                        }
-                    }
-                    _ => (),
-                };
-
-                done.insert((c, cube));
             });
         }
 
