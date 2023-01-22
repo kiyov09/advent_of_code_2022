@@ -1,4 +1,4 @@
-use std::{cmp, collections::HashMap, hash::Hash, num::ParseIntError, str::FromStr};
+use std::{cmp, num::ParseIntError, str::FromStr};
 
 use crate::utils::get_input_content;
 
@@ -119,12 +119,23 @@ impl FromStr for Blueprint {
     }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
+#[derive(Debug, Clone)]
 enum Robots {
-    Ore,
+    Ore = 0,
     Clay,
     Obsidian,
     Geode,
+}
+
+impl From<Robots> for usize {
+    fn from(value: Robots) -> Self {
+        match value {
+            Robots::Ore => 0,
+            Robots::Clay => 1,
+            Robots::Obsidian => 2,
+            Robots::Geode => 3,
+        }
+    }
 }
 
 #[derive(Default, Debug)]
@@ -132,7 +143,7 @@ struct Factory {
     id: usize,
     warehouse: Warehouse,
     blueprint: Blueprint,
-    robots: HashMap<Robots, usize>,
+    robots: [usize; 4],
 }
 
 impl Factory {
@@ -140,7 +151,7 @@ impl Factory {
         Self {
             id,
             blueprint,
-            robots: HashMap::from([(Robots::Ore, 1)]),
+            robots: [1, 0, 0, 0],
             ..Default::default()
         }
     }
@@ -157,8 +168,11 @@ impl Factory {
                 Robots::Geode => {
                     let mut new_state = state.clone();
 
-                    let ore_robots = *new_state.robots.get(&Robots::Ore).unwrap_or(&0);
-                    let obs_robots = *new_state.robots.get(&Robots::Obsidian).unwrap_or(&0);
+                    let ore_robots = *new_state.robots.get(usize::from(Robots::Ore)).unwrap_or(&0);
+                    let obs_robots = *new_state
+                        .robots
+                        .get(usize::from(Robots::Obsidian))
+                        .unwrap_or(&0);
 
                     // Do I need to build another obsidian robot
                     if obs_robots > 0 {
@@ -194,9 +208,15 @@ impl Factory {
                 Robots::Obsidian => {
                     let mut new_state = state.clone();
 
-                    let ore_robots = *new_state.robots.get(&Robots::Ore).unwrap_or(&0);
-                    let clay_robots = *new_state.robots.get(&Robots::Clay).unwrap_or(&0);
-                    let obs_robots = *new_state.robots.get(&Robots::Obsidian).unwrap_or(&0);
+                    let ore_robots = *new_state.robots.get(usize::from(Robots::Ore)).unwrap_or(&0);
+                    let clay_robots = *new_state
+                        .robots
+                        .get(usize::from(Robots::Clay))
+                        .unwrap_or(&0);
+                    let obs_robots = *new_state
+                        .robots
+                        .get(usize::from(Robots::Obsidian))
+                        .unwrap_or(&0);
 
                     // Do I need to build another obsidian robot
                     if clay_robots > 0
@@ -235,8 +255,11 @@ impl Factory {
                 Robots::Clay => {
                     let mut new_state = state.clone();
 
-                    let clay_robots = *new_state.robots.get(&Robots::Clay).unwrap_or(&0);
-                    let ore_robots = *new_state.robots.get(&Robots::Ore).unwrap_or(&0);
+                    let clay_robots = *new_state
+                        .robots
+                        .get(usize::from(Robots::Clay))
+                        .unwrap_or(&0);
+                    let ore_robots = *new_state.robots.get(usize::from(Robots::Ore)).unwrap_or(&0);
 
                     // Do I need to build another clay robot
                     if new_state.warehouse.clay + (new_state.time * clay_robots)
@@ -266,7 +289,7 @@ impl Factory {
                 Robots::Ore => {
                     let mut new_state = state.clone();
 
-                    let ore_robots = *new_state.robots.get(&Robots::Ore).unwrap_or(&0);
+                    let ore_robots = *new_state.robots.get(usize::from(Robots::Ore)).unwrap_or(&0);
 
                     // Do I need to build another ore robot
                     if new_state.warehouse.ore + (new_state.time * ore_robots)
@@ -317,25 +340,26 @@ fn time_to(cost: i32, current: i32, producer: i32) -> i32 {
 
 #[derive(Debug, Clone)]
 struct FactoryState {
-    robots: HashMap<Robots, usize>,
+    robots: [usize; 4],
     warehouse: Warehouse,
     time: usize,
 }
 
 impl FactoryState {
     fn update_warehouse(&mut self, delta_time: usize) {
-        self.robots.iter().for_each(|(kind, amount)| {
-            match kind {
-                Robots::Ore => self.warehouse.ore += amount * delta_time,
-                Robots::Clay => self.warehouse.clay += amount * delta_time,
-                Robots::Obsidian => self.warehouse.obsidian += amount * delta_time,
-                Robots::Geode => self.warehouse.geode += amount * delta_time,
+        self.robots.iter().enumerate().for_each(|(idx, amount)| {
+            match idx {
+                0 => self.warehouse.ore += amount * delta_time,
+                1 => self.warehouse.clay += amount * delta_time,
+                2 => self.warehouse.obsidian += amount * delta_time,
+                3 => self.warehouse.geode += amount * delta_time,
+                _ => unreachable!("Can't have more than 4 kind of robots"),
             };
         });
     }
 
     fn add_robot(&mut self, kind: Robots) {
-        self.robots.entry(kind).and_modify(|v| *v += 1).or_insert(1);
+        self.robots[usize::from(kind)] += 1;
     }
 }
 
@@ -375,7 +399,7 @@ pub fn task_1() {
         .iter_mut()
         .map(|fac| {
             fac.collect_geodes(FactoryState {
-                robots: fac.robots.clone(),
+                robots: fac.robots,
                 warehouse: fac.warehouse.clone(),
                 time: 23,
             }) * fac.id
@@ -394,7 +418,7 @@ pub fn task_2() {
         .take(3)
         .map(|fac| {
             fac.collect_geodes(FactoryState {
-                robots: fac.robots.clone(),
+                robots: fac.robots,
                 warehouse: fac.warehouse.clone(),
                 time: 31,
             })
