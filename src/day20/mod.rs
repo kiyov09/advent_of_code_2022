@@ -2,30 +2,33 @@ use crate::utils::get_input_content;
 
 const INPUT_PATH: &str = "inputs/day_20.txt";
 
-type Elem = (i32, bool);
+type Elem = (i64, bool, usize);
 
 struct Challenge {
     data: Vec<Elem>,
-    cursor: usize,
 }
 
 impl Challenge {
     pub fn new() -> Self {
         let input = get_input_content(INPUT_PATH);
         Self {
-            data: input.lines().map(|i| (i.parse().unwrap(), false)).collect(),
-            cursor: 0,
+            data: input
+                .lines()
+                .enumerate()
+                .map(|(idx, i)| (i.parse().unwrap(), false, idx))
+                .collect(),
         }
     }
 
-    pub fn process(&mut self) -> i32 {
-        while self.cursor < self.data.len() {
-            let item = self.data[self.cursor];
+    pub fn process(&mut self, rounds: usize) -> i64 {
+        let original = self.data.clone();
+        let iter = original.iter().cycle().take(original.len() * rounds);
 
-            if !item.1 && item.0 != 0 {
-                self.move_value_to_pos(self.cursor, item.0);
-            } else {
-                self.cursor += 1;
+        for item in iter {
+            let item_pos = self.data.iter().position(|i| i.2 == item.2).unwrap();
+
+            if item.0 != 0 {
+                self.move_value_to_pos(item_pos, item.0);
             }
         }
 
@@ -38,55 +41,33 @@ impl Challenge {
         result
     }
 
-    pub fn move_value_to_pos(&mut self, from: usize, delta: i32) {
-        match delta.is_positive() {
-            true => {
-                let mut idx = from as i32 + delta;
+    pub fn move_value_to_pos(&mut self, from: usize, delta: i64) {
+        let org_index = self.data[from].2;
 
-                if idx > self.data.len() as i32 - 1 {
-                    idx %= self.data.len() as i32 - 1;
-                }
+        let mut idx = from as i64 + delta;
+        idx = idx.rem_euclid(self.data.len() as i64 - 1);
 
-                self.data.remove(from);
-                self.data.insert(idx as usize, (delta, true));
-
-                // match idx <= self.cursor as i32 {
-                //     true => self.cursor += 1,
-                //     false => (),
-                // };
-            }
-            false => {
-                let mut idx = from as i32 + delta;
-
-                if idx < 0 {
-                    idx = self.data.len() as i32 - 1 - (idx.abs() % self.data.len() as i32);
-                }
-
-                self.data.remove(from);
-
-                if idx == 0 {
-                    self.data.push((delta, true));
-                } else {
-                    self.data.insert(idx as usize, (delta, true));
-                }
-
-                // match idx <= self.cursor as i32 {
-                //     false => (),
-                //     true => self.cursor += 1,
-                // };
-            }
-        }
+        self.data.remove(from);
+        self.data.insert(idx as usize, (delta, true, org_index));
     }
 
-    pub fn get_at_index(&self, from: usize, idx: usize) -> i32 {
+    pub fn get_at_index(&self, from: usize, idx: usize) -> i64 {
         self.data.iter().cycle().skip(from).nth(idx).unwrap().0
     }
 }
 
 pub fn task_1() {
     let mut ch = Challenge::new();
-    let result = ch.process();
+    let result = ch.process(1);
 
-    println!("Sum of grove coordinates: {result}");
+    println!("Sum of grove coords: {result}");
 }
-pub fn task_2() {}
+
+pub fn task_2() {
+    let mut ch = Challenge::new();
+
+    ch.data.iter_mut().for_each(|i| i.0 *= 811589153);
+    let result = ch.process(10);
+
+    println!("Sum of grove coords (decryption): {result}");
+}
