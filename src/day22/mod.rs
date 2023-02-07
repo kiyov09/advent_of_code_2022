@@ -253,15 +253,7 @@ impl Challenge {
                             .enumerate()
                             .rev()
                             .cycle()
-                            .map(|(idx, row)| {
-                                (
-                                    idx,
-                                    match row.get(actor_pos.0) {
-                                        Some(cell) => cell,
-                                        None => &Cell::Void,
-                                    },
-                                )
-                            })
+                            .map(|(idx, row)| (idx, row.get(actor_pos.0).unwrap_or(&Cell::Void)))
                             .skip(self.map.map.len() - actor_pos.1)
                             .filter(|(_, cell)| *cell != &Cell::Void)
                             .take(*n as usize)
@@ -279,15 +271,7 @@ impl Challenge {
                             .iter()
                             .enumerate()
                             .cycle()
-                            .map(|(idx, row)| {
-                                (
-                                    idx,
-                                    match row.get(actor_pos.0) {
-                                        Some(cell) => cell,
-                                        None => &Cell::Void,
-                                    },
-                                )
-                            })
+                            .map(|(idx, row)| (idx, row.get(actor_pos.0).unwrap_or(&Cell::Void)))
                             .skip(actor_pos.1 + 1)
                             .filter(|(_, cell)| *cell != &Cell::Void)
                             .take(*n as usize)
