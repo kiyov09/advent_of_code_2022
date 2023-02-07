@@ -214,29 +214,39 @@ impl Challenge {
                 Cmd::Move(n) => match self.actor.facing {
                     Facing::Left => {
                         let row = self.map.map.get(actor_pos.1).unwrap();
-                        let iter = row
+                        let last = row
                             .iter()
                             .enumerate()
                             .rev()
                             .cycle()
                             .skip(row.len() - actor_pos.0)
-                            .filter(|(_, cell)| *cell != &Cell::Void);
+                            .filter(|(_, cell)| *cell != &Cell::Void)
+                            .take(*n as usize)
+                            .take_while(|(_, cell)| *cell == &Cell::Open)
+                            .last();
 
-                        Self::move_actor(iter, *n, &mut actor_pos.0);
+                        if let Some((idx, _)) = last {
+                            actor_pos.0 = idx;
+                        }
                     }
                     Facing::Right => {
                         let row = self.map.map.get(actor_pos.1).unwrap();
-                        let iter = row
+                        let last = row
                             .iter()
                             .enumerate()
                             .cycle()
                             .skip(actor_pos.0 + 1)
-                            .filter(|(_, cell)| *cell != &Cell::Void);
+                            .filter(|(_, cell)| *cell != &Cell::Void)
+                            .take(*n as usize)
+                            .take_while(|(_, cell)| *cell == &Cell::Open)
+                            .last();
 
-                        Self::move_actor(iter, *n, &mut actor_pos.0);
+                        if let Some((idx, _)) = last {
+                            actor_pos.0 = idx;
+                        }
                     }
                     Facing::Top => {
-                        let iter = self
+                        let last = self
                             .map
                             .map
                             .iter()
@@ -253,12 +263,17 @@ impl Challenge {
                                 )
                             })
                             .skip(self.map.map.len() - actor_pos.1)
-                            .filter(|(_, cell)| *cell != &Cell::Void);
+                            .filter(|(_, cell)| *cell != &Cell::Void)
+                            .take(*n as usize)
+                            .take_while(|(_, cell)| *cell == &Cell::Open)
+                            .last();
 
-                        Self::move_actor(iter, *n, &mut actor_pos.1);
+                        if let Some((idx, _)) = last {
+                            actor_pos.1 = idx;
+                        }
                     }
                     Facing::Down => {
-                        let iter = self
+                        let last = self
                             .map
                             .map
                             .iter()
@@ -274,31 +289,18 @@ impl Challenge {
                                 )
                             })
                             .skip(actor_pos.1 + 1)
-                            .filter(|(_, cell)| *cell != &Cell::Void);
+                            .filter(|(_, cell)| *cell != &Cell::Void)
+                            .take(*n as usize)
+                            .take_while(|(_, cell)| *cell == &Cell::Open)
+                            .last();
 
-                        Self::move_actor(iter, *n, &mut actor_pos.1);
+                        if let Some((idx, _)) = last {
+                            actor_pos.1 = idx;
+                        }
                     }
                 },
                 Cmd::Rotate(dir) => self.actor.rotate(*dir),
             };
-        }
-    }
-
-    fn move_actor<'a>(
-        iter: impl Iterator<Item = (usize, &'a Cell)>,
-        mut steps: i8,
-        pos: &mut usize,
-    ) {
-        for (idx, cell) in iter {
-            match cell {
-                Cell::Open => *pos = idx,
-                Cell::Wall => break,
-                Cell::Void => unreachable!("Already filter out"),
-            };
-            steps -= 1;
-            if steps == 0 {
-                break;
-            }
         }
     }
 
@@ -312,6 +314,8 @@ impl Challenge {
 pub fn task_1() {
     let mut ch = Challenge::new();
     ch.process_commands();
+
     println!("The password is: {}", ch.get_password());
 }
+
 pub fn task_2() {}
